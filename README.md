@@ -1,6 +1,6 @@
 # Model Service for Titanic Survivor Prediction Application
 
-The Model Service is a dedicated microservice responsible for handling machine learning model training and inference for the Titanic Survivor Prediction Application. Developed using FastAPI and scikit-learn, this service is containerized and fully integrated with the overall Docker Compose orchestration—ensuring zero manual configuration and a robust production environment.
+The Model Service is a dedicated microservice responsible for machine learning model training, inference, and management for the Titanic Survivor Prediction Application. Developed with FastAPI and scikit-learn, it is containerized and integrated with Docker Compose for seamless deployment.
 
 ## Table of Contents
 
@@ -15,40 +15,29 @@ The Model Service is a dedicated microservice responsible for handling machine l
 
 ## Overview
 
-The Model Service performs the following key functions:
-- **Machine Learning Inference:**  
-  Processes prediction requests using robust ML algorithms such as Random Forest, SVM, Logistic Regression, and Decision Trees.
-- **Model Training and Management:**  
-  Allows the training of new models and the management (listing, reloading, and deletion) of existing models through secure administrative endpoints.
-- **High Performance:**  
-  Designed for asynchronous processing and optimized for real-time predictions, ensuring low latency communication with the backend.
-- **Containerized Deployment:**  
-  Fully containerized and orchestrated via Docker Compose for seamless integration within the application stack.
+The Model Service performs the following functions:
+- **Machine Learning Inference**: Processes prediction requests using ML algorithms (Random Forest, SVM, etc.).
+- **Model Training and Management**: Supports training new models and managing existing ones through secure endpoints.
+- **High Performance**: Designed for asynchronous processing and real-time predictions.
+- **Containerized Deployment**: Fully integrated with Docker Compose for seamless production environments.
 
 ## Features
 
-- **RESTful API with OpenAPI Documentation:**  
-  Exposes secure endpoints for both inference and model management accessible via Swagger UI.
-- **Integrated ML Algorithms:**  
-  Leverages scikit-learn to deliver accurate and efficient predictions.
-- **Administrative Controls:**  
-  Provides endpoints for model training, listing, and deletion, following the Project Charter’s administrative requirements.
-- **Zero Local Configuration:**  
-  Pre-configured to run within Docker Compose—eliminating the need for manual environment variable setups.
-- **Scalability and Performance:**  
-  Optimized for high throughput and low latency to support real-time inference at scale.
+- **RESTful API with OpenAPI Documentation**: Easily accessible through Swagger UI.
+- **Integrated ML Algorithms**: Leverages scikit-learn for accurate predictions.
+- **Administrative Controls**: Endpoints for model training, listing, and deletion.
+- **Zero Local Configuration**: Pre-configured to run using Docker Compose.
+- **Optimized for Scalability**: Supports high throughput and low latency inference.
 
 ## Getting Started
 
 1. **Clone the Repository:**
-
    ```bash
    git clone https://your.git.repo/model.git
    cd model
    ```
 
 2. **Create a Virtual Environment and Install Dependencies:**
-
    ```bash
    python3 -m venv venv
    source venv/bin/activate
@@ -57,63 +46,44 @@ The Model Service performs the following key functions:
 
 ## Development
 
-- **Run Locally:**  
-  Start the model service with the following command. This launches FastAPI with auto-reload enabled for development convenience:
-  
+- **Run Locally:**
   ```bash
   uvicorn main:app --reload --host 0.0.0.0 --port 5000
   ```
+  This command starts the model service with auto-reload for development convenience.
 
-- **Code Quality:**  
-  - **Linting:** Use `flake8` to check for code style issues.
-  - **Formatting:** Use `black` to maintain consistent code formatting.
+- **Code Quality Tools:**
+  - Run `flake8` for linting.
+  - Run `black` for consistent code formatting.
 
 ## Testing
 
-- **Unit and Integration Tests:**  
-  The Model Service includes a comprehensive suite of tests to ensure functionality and performance. Run tests using:
-  
-  ```bash
-  pytest
-  ```
+Execute tests using:
+```bash
+pytest
+```
+This suite covers both unit and integration tests to ensure functionality and performance.
 
 ## Deployment
 
-This service is pre-configured for production deployment using Docker. No additional configuration or environment variable setup is required.
-
-- **Using Docker Compose:**  
-  From the root of the overall repository, deploy the full application stack (including the Model Service) with:
-  
-  ```bash
-  docker-compose up --build -d
-  ```
-
-  This command builds and launches all services (Frontend, Backend, Model Service, and Supabase).
+This service is production-ready and can be deployed using Docker Compose. From the repository root, run:
+```bash
+docker-compose up --build -d
+```
 
 ## Troubleshooting
 
-- **Common Issues:**
-  - **Service Logs:**  
-    Check the Model Service logs for errors:
-    
-    ```bash
-    docker-compose logs model
-    ```
-    
-  - **Container Health:**  
-    Verify that the container is running correctly:
-    
-    ```bash
-    docker-compose ps
-    ```
-    
-  - **API Endpoints:**  
-    Access the integrated Swagger UI at [http://localhost:5000/docs](http://localhost:5000/docs) to verify that API endpoints are operational and correctly documented.
+- **Service Logs:**
+  ```bash
+  docker-compose logs model
+  ```
+- **Container Health:**
+  ```bash
+  docker-compose ps
+  ```
+- **API Verification:**
+  Access the Swagger UI at [http://localhost:5000/docs](http://localhost:5000/docs) to verify endpoint functionality.
 
 ## Documentation
 
-For further details on API endpoints, ML algorithm integration, and administrative controls, please refer to the comprehensive documentation maintained within the `/docs` submodule. All documentation is kept up-to-date with the latest modifications as outlined in the Project Charter.
-
----
-
-*This Model Service is a key component of the Titanic Survivor Prediction Application, designed to deliver robust, real-time ML predictions while ensuring smooth integration and scalable performance across the entire system.*
+For additional details on API endpoints, ML algorithm integration, and administrative controls, refer to the comprehensive documentation maintained in the [docs submodule](https://mygit.th-deg.de/schober-teaching/student-projects/ain-23-software-engineering/ss-25/Random_Iceberg/docker-compose/-/wikis/home).
