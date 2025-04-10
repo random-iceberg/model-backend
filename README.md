@@ -2,6 +2,20 @@
 
 The Model Service is a dedicated microservice responsible for machine learning model training, inference, and management for the Titanic Survivor Prediction Application. Developed with FastAPI and scikit-learn, it is containerized and integrated with Docker Compose for seamless deployment.
 
+## Project Structure
+
+The Model Service handles machine learning model training, inference, and management using FastAPI and scikit-learn. Its modular structure ensures quick updates and scalability:
+
+```
+model/
+├── README.md             # Model service documentation
+├── main.py               # Entry point of the model service
+├── requirements.txt      # Python dependencies for ML functionality
+├── training/             # Scripts and configurations for model training
+├── inference/            # Modules for real-time inference and API endpoints
+└── tests/                # Unit and integration tests for model functionality
+```
+
 ## Table of Contents
 
 - [Overview](#overview)
