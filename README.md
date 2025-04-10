@@ -42,21 +42,31 @@ The Model Service performs the following functions:
 - **Administrative Controls**: Endpoints for model training, listing, and deletion.
 - **Zero Local Configuration**: Pre-configured to run using Docker Compose.
 - **Optimized for Scalability**: Supports high throughput and low latency inference.
+- **Dataset Download via kagglehub:**  
+  To download the Titanic dataset:
+  ```python
+  import kagglehub
+  kagglehub.competition_download('titanic')
+  ```
 
 ## Getting Started
 
-1. **Clone the Repository:**
+1. **Clone the Repository:**  
+   Navigate to the `model/` directory.
+2. **Install Dependencies:**
    ```bash
-   git clone https://your.git.repo/model.git
-   cd model
-   ```
-
-2. **Create a Virtual Environment and Install Dependencies:**
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate
    pip install -r requirements.txt
    ```
+3. **Download the Titanic Dataset:**
+   ```bash
+   python -m model.data_downloader
+   ```
+4. **Start the Service:**
+   ```bash
+   uvicorn main:app --reload --host 0.0.0.0 --port 5000
+   ```
+5. **Access API Docs:**  
+   Open [http://localhost:5000/docs](http://localhost:5000/docs) in your browser.
 
 ## Development
 
