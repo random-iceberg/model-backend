@@ -48,4 +48,4 @@ if __name__ == "__main__":
     # TODO:
     #   - Update production server settings (e.g., disable reload)
     #   - Consider using Gunicorn with Uvicorn workers for production deployment.
-    uvicorn.run("model.main:app", host="0.0.0.0", port=5000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=5000, reload=True)
