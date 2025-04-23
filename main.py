@@ -1,5 +1,4 @@
 from fastapi import FastAPI, APIRouter
-import uvicorn
 import logging
 
 # Configure root logger
@@ -44,8 +43,3 @@ def create_app() -> FastAPI:
 
 app = create_app()
 
-if __name__ == "__main__":
-    # TODO:
-    #   - Update production server settings (e.g., disable reload)
-    #   - Consider using Gunicorn with Uvicorn workers for production deployment.
-    uvicorn.run("model.main:app", host="0.0.0.0", port=5000, reload=True)
