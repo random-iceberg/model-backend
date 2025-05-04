@@ -22,7 +22,7 @@ def create_app() -> FastAPI:
         title="Titanic Model Service",
         description="Microservice for ML model training and inference.",
         docs_url="/docs",
-        redoc_url="/redoc",
+        redoc_url=None,
         swagger_ui_parameters={
             "syntaxHighlight": True,
             "docExpansion": "none"
