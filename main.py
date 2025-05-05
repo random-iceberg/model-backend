@@ -1,4 +1,5 @@
 from fastapi import FastAPI, APIRouter
+from fastapi.responses import RedirectResponse
 import logging
 
 # Configure root logger
@@ -20,6 +21,12 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title="Titanic Model Service",
         description="Microservice for ML model training and inference.",
+        docs_url="/docs",
+        redoc_url=None,
+        swagger_ui_parameters={
+            "syntaxHighlight": True,
+            "docExpansion": "none"
+        },
         version="1.0.0"
     )
 
@@ -30,6 +37,10 @@ def create_app() -> FastAPI:
         Simple health check endpoint to verify the service is running.
         """
         return {"status": "ok"}
+    
+    @app.get("/", include_in_schema=False)
+    async def root_redirect():
+        return RedirectResponse(url="/docs")
 
     # Include routers from submodules
     from inference.inference_endpoint import inference_endpoint
