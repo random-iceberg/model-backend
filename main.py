@@ -1,19 +1,43 @@
-from fastapi import FastAPI, APIRouter
-from fastapi.responses import RedirectResponse
 import logging
+from contextlib import asynccontextmanager
+from os import environ
+from pathlib import Path
+
+from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
+
+from models_router import models_router
+from utils.data import load_data
+from utils.models import LoadedModels
 
 # Configure root logger
 logging.basicConfig(
     level=logging.INFO,
-    format="[%(asctime)s] %(levelname)s in %(module)s: %(message)s"
+    format="[%(asctime)s] %(levelname)s in %(module)s: %(message)s",
 )
 logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Initialize
+    data_prefix = Path(environ.get("DATA_PREFIX", "tmp/data"))
+    data_prefix.mkdir(parents=True, exist_ok=True)
+
+    data = load_data(data_prefix / "data")
+    models = LoadedModels(data_prefix / "models")
+    await models.load_existing()
+
+    yield {"data": data, "models": models}
+
+    # Clean up
+
 
 def create_app() -> FastAPI:
     """
     Create and configure the FastAPI application instance for the Model API.
     Includes health check endpoints and mounts the inference and training routers.
-    
+
     TODO:
       - Load environment-specific configurations (e.g., via pydantic BaseSettings)
       - Integrate metrics/monitoring endpoints (e.g., Prometheus exporter)
@@ -25,9 +49,10 @@ def create_app() -> FastAPI:
         redoc_url=None,
         swagger_ui_parameters={
             "syntaxHighlight": True,
-            "docExpansion": "none"
+            "docExpansion": "none",
         },
-        version="1.0.0"
+        version="1.0.0",
+        lifespan=lifespan,
     )
 
     # Health check endpoint
@@ -37,20 +62,17 @@ def create_app() -> FastAPI:
         Simple health check endpoint to verify the service is running.
         """
         return {"status": "ok"}
-    
+
     @app.get("/", include_in_schema=False)
     async def root_redirect():
         return RedirectResponse(url="/docs")
 
     # Include routers from submodules
-    from inference.inference_endpoint import inference_endpoint
-    from training.training_endpoint import training_endpoint
 
     # Mount inference and training endpoints
-    app.include_router(inference_endpoint, prefix="/inference", tags=["Inference"])
-    app.include_router(training_endpoint, prefix="/training", tags=["Training"])
+    app.include_router(models_router, prefix="/models", tags=["Models"])
 
     return app
 
-app = create_app()
 
+app = create_app()
