@@ -6,15 +6,15 @@ services:
       target: dev
     develop:
       watch:
-        - path: ./requirements.txt
-          action: rebuild
-        - path: ./main.py
-          action: sync+restart
-          target: /app/main.py
         - path: .
-          ignore: # TODO: refine
-            - requirements.txt
-            - main.py
+          include:
+            - Dockerfile
+            - pyproject.toml
+          action: rebuild
+        - path: .
+          ignore:
+            - ./**/__pycache__ 
+            - Dockerfile
+            - pyproject.toml
           action: sync
-          target: /app
-
+          target: /app/src

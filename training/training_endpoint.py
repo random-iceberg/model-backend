@@ -1,9 +1,11 @@
+import logging
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-import logging
 
 # Configure module-level logger
 logger = logging.getLogger(__name__)
+
 
 class TrainingRequest(BaseModel):
     """
@@ -11,7 +13,9 @@ class TrainingRequest(BaseModel):
     TODO:
       - Define specific training parameters (e.g., selected algorithms, hyperparameters, training data subset)
     """
+
     parameters: dict
+
 
 class TrainingResponse(BaseModel):
     """
@@ -19,15 +23,20 @@ class TrainingResponse(BaseModel):
     TODO:
       - Include additional details such as training metrics, expected completion time, etc.
     """
+
     status: str
+
 
 training_endpoint = APIRouter()
 
-@training_endpoint.post("/", response_model=TrainingResponse, summary="Initiate ML Model Training")
+
+@training_endpoint.post(
+    "/", response_model=TrainingResponse, summary="Initiate ML Model Training"
+)
 async def run_training(request: TrainingRequest) -> TrainingResponse:
     """
     Endpoint to initiate model training.
-    
+
     TODO:
       - Integrate the actual training pipeline (e.g., call a training service or function)
       - Provide real-time progress updates via polling or WebSocket integration
@@ -36,10 +45,10 @@ async def run_training(request: TrainingRequest) -> TrainingResponse:
     try:
         # Log the received training parameters for transparency.
         logger.info("Received training request with parameters: %s", request.parameters)
-        
+
         # TODO: Replace the placeholder logic below with an integration to the training pipeline.
         training_status = "Training initiated"  # Placeholder status message
-        
+
         response = TrainingResponse(status=training_status)
         return response
     except Exception as exc:
