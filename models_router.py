@@ -1,9 +1,7 @@
 import logging
 from uuid import uuid4
 
-from fastapi import APIRouter, Request
-
-from utils.models import LoadedModels
+from fastapi import APIRouter, HTTPException, Request
 
 from schemas import (
     InferenceRequest,
@@ -11,6 +9,8 @@ from schemas import (
     Model,
     ModelParams,
 )
+from utils.data import prepare_passenger_data
+from utils.models import LoadedModels
 
 # Configure module-level logger
 logger = logging.getLogger(__name__)
@@ -21,8 +21,9 @@ models_router = APIRouter()
 @models_router.get("/")
 async def list_models(req: Request) -> list[Model]:
     """List trained models"""
+    models: LoadedModels = req.state.models
 
-    return []
+    return [model.desc for model in models.models.values()]
 
 
 @models_router.post("/train")
@@ -40,9 +41,19 @@ async def run_inference(model_id: str, input: InferenceRequest, req: Request) ->
     """
     Endpoint to run machine learning inference.
     """
-    return InferenceResponse(survived=False)
+    models: LoadedModels = req.state.models
+    model = models[model_id]
+
+    prepared_data = prepare_passenger_data(input, model.desc.params.features)
+    print(prepared_data)
+    prediction = model.impl.predict(prepared_data)[0]
+
+    return InferenceResponse(survived=prediction)
 
 
 @models_router.delete("/{model_id}")
 async def delete_model(model_id: str, req: Request) -> bool:
+    models: LoadedModels = req.state.models
+    if not await models.delete_model(model_id):
+        raise HTTPException(status_code=404, detail="Model not found")
     return True

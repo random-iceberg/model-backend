@@ -20,15 +20,17 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialize
     data_prefix = Path(environ.get("DATA_PREFIX", "tmp/data"))
-    data_prefix.mkdir(parents=True, exist_ok=True)
+    # Dataset and models dirs
+    dataset_path = Path(environ.get("DATASET_PATH", str(data_prefix / "dataset")))
+    models_path  = Path(environ.get("MODELS_PATH",  str(data_prefix / "models")))
 
-    data = load_data(data_prefix / "data")
-    models = LoadedModels(data_prefix / "models")
+    # Load the Titanic data and existing models
+    _   = load_data(dataset_path)
+    models = LoadedModels(models_path, dataset_path)
     await models.load_existing()
 
-    yield {"data": data, "models": models}
+    yield {"models": models}
 
     # Clean up
 

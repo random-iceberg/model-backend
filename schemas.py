@@ -1,10 +1,13 @@
 from enum import Enum
 from typing import Literal
+
 from pydantic import BaseModel, Field
 
 
 class DatasetFeature(str, Enum):
     """Dataset features available for training"""
+
+    # The change of the enum values should be done in a backward compatible way
 
     pclass = "pclass"
     sex = "sex"
@@ -13,46 +16,42 @@ class DatasetFeature(str, Enum):
     embarked = "embarked"
     title_ = "title"
     is_alone = "is_alone"
-    ageclass = "ageclass"
+    age_class = "age_class"
+
+
+DEFAULT_FEATURE_SET = set([feature for feature in DatasetFeature])
 
 
 class AlgoRf(BaseModel):
     name: Literal["rf"] = "rf"
-    # TODO: add parameters and set defaults
-    some_rf_param: str
+    n_estimators: int = Field(100, ge=1)
 
 
 class AlgoDt(BaseModel):
     name: Literal["dt"] = "dt"
-    # TODO: add parameters and set defaults
-    some_dt_param: str
 
 
 class AlgoKnn(BaseModel):
     name: Literal["knn"] = "knn"
     # TODO: add parameters and set defaults
-    some_knn_param: str
+    n_neighbours: int = Field(5, ge=1)
 
 
-class AlgoSvn(BaseModel):
-    name: Literal["svn"] = "svn"
+class AlgoSvm(BaseModel):
+    name: Literal["svm"] = "svm"
     # TODO: add parameters and set defaults
-    some_svn_param: str
 
 
 class AlgoLr(BaseModel):
     name: Literal["lr"] = "lr"
-    # TODO: add parameters and set defaults
-    some_lr_param: str
 
 
 class ModelParams(BaseModel):
     """All the model training parameters"""
 
-    algo: AlgoRf | AlgoDt | AlgoKnn | AlgoSvn | AlgoLr = Field(discriminator="name")
-    # TODO: add parameters and set defaults
-    some_common_param: str
-    features: set[DatasetFeature]
+    algo: AlgoRf | AlgoDt | AlgoKnn | AlgoSvm | AlgoLr = Field(discriminator="name")
+    random_state: int | None = Field(None)
+    features: set[DatasetFeature] = Field(DEFAULT_FEATURE_SET)
 
 
 class ModelInfo(BaseModel):
@@ -74,7 +73,13 @@ class InferenceRequest(BaseModel):
     Data model for inference request.
     """
 
-    pass
+    pclass: Literal[1, 2, 3]
+    sex: Literal["male", "female"]
+    age: float = Field(..., ge=0, le=100)
+    fare: float = Field(..., ge=0, le=500)
+    travelled_alone: bool
+    embarked: Literal["cherbourg", "queenstown", "southhampton"]
+    title: Literal["master", "miss", "mr", "mrs", "rare"]
 
 
 class InferenceResponse(BaseModel):
