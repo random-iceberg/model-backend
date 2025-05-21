@@ -1,9 +1,11 @@
+import logging
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-import logging
 
 # Configure module-level logger
 logger = logging.getLogger(__name__)
+
 
 class InferenceRequest(BaseModel):
     """
@@ -11,7 +13,9 @@ class InferenceRequest(BaseModel):
     TODO:
       - Define all necessary fields for inference input parameters (e.g., features array, model identifier, etc.)
     """
+
     data: dict
+
 
 class InferenceResponse(BaseModel):
     """
@@ -19,15 +23,22 @@ class InferenceResponse(BaseModel):
     TODO:
       - Include additional output fields such as prediction probability, model metadata, etc.
     """
+
     prediction: float
+
 
 inference_endpoint = APIRouter()
 
-@inference_endpoint.post("/", response_model=InferenceResponse, summary="Run ML Inference for Titanic Prediction")
+
+@inference_endpoint.post(
+    "/",
+    response_model=InferenceResponse,
+    summary="Run ML Inference for Titanic Prediction",
+)
 async def run_inference(request: InferenceRequest) -> InferenceResponse:
     """
     Endpoint to run machine learning inference.
-    
+
     TODO:
       - Integrate with actual ML inference logic (e.g., load a persisted model, perform data pre-processing)
       - Implement asynchronous processing if the inference call is blocking
@@ -36,10 +47,10 @@ async def run_inference(request: InferenceRequest) -> InferenceResponse:
     try:
         # Log the received request data for debugging and audit purposes.
         logger.info("Received inference request with data: %s", request.data)
-        
+
         # TODO: Replace the following placeholder with an actual model inference call.
         prediction_score = 0.0  # Replace with real prediction logic
-        
+
         response = InferenceResponse(prediction=prediction_score)
         return response
     except Exception as exc:

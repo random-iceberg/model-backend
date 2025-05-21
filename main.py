@@ -1,19 +1,21 @@
-from fastapi import FastAPI, APIRouter
-from fastapi.responses import RedirectResponse
 import logging
+
+from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 
 # Configure root logger
 logging.basicConfig(
     level=logging.INFO,
-    format="[%(asctime)s] %(levelname)s in %(module)s: %(message)s"
+    format="[%(asctime)s] %(levelname)s in %(module)s: %(message)s",
 )
 logger = logging.getLogger(__name__)
+
 
 def create_app() -> FastAPI:
     """
     Create and configure the FastAPI application instance for the Model API.
     Includes health check endpoints and mounts the inference and training routers.
-    
+
     TODO:
       - Load environment-specific configurations (e.g., via pydantic BaseSettings)
       - Integrate metrics/monitoring endpoints (e.g., Prometheus exporter)
@@ -25,9 +27,9 @@ def create_app() -> FastAPI:
         redoc_url=None,
         swagger_ui_parameters={
             "syntaxHighlight": True,
-            "docExpansion": "none"
+            "docExpansion": "none",
         },
-        version="1.0.0"
+        version="1.0.0",
     )
 
     # Health check endpoint
@@ -37,7 +39,7 @@ def create_app() -> FastAPI:
         Simple health check endpoint to verify the service is running.
         """
         return {"status": "ok"}
-    
+
     @app.get("/", include_in_schema=False)
     async def root_redirect():
         return RedirectResponse(url="/docs")
@@ -52,5 +54,5 @@ def create_app() -> FastAPI:
 
     return app
 
-app = create_app()
 
+app = create_app()
