@@ -4,17 +4,5 @@ services:
     build:
       context: .
       target: dev
-    develop:
-      watch:
-        - path: .
-          include:
-            - Dockerfile
-            - pyproject.toml
-          action: rebuild
-        - path: .
-          ignore:
-            - ./**/__pycache__ 
-            - Dockerfile
-            - pyproject.toml
-          action: sync
-          target: /app/src
+    volumes:
+      - .:/to_sync:ro

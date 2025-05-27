@@ -11,6 +11,10 @@ RUN uv sync --no-cache
 
 
 FROM base AS dev
+RUN apt-get update && apt-get install -y rsync dos2unix
+COPY ./container/dev-entrypoint.sh /entrypoint.sh
+RUN dos2unix /entrypoint.sh
+ENTRYPOINT [ "bash", "/entrypoint.sh" ]
 EXPOSE 8000
 CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 
