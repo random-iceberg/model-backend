@@ -185,7 +185,8 @@ def load_preprocessed_data(path: Path):
         not (path / "train_preprocessed.csv").exists()
         or not (path / "test_preprocessed.csv").exists()
     ):
-        return None  # Load the preprocessed data from CSV files
+        return None
+    # Load the preprocessed data from CSV files
 
     train = pd.read_csv(path / "train_preprocessed.csv")
     test = pd.read_csv(path / "test_preprocessed.csv")
