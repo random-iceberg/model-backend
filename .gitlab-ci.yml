@@ -35,8 +35,15 @@ docker-build:
 checks:
   image: ghcr.io/astral-sh/uv:0.7.4-python3.13-bookworm-slim
   stage: test
+  before_script:
+    # Install git. TODO: consider creating a separate image for testing
+    - apt-get update && apt-get install -y git
+    # Make sure the branch with the dataset is available
+    - git fetch origin data
   script:
     - uv sync --no-cache --extra dev
     - uv run pytest
     - uv run ruff check
     - uv run ruff format --check
+  rules:
+    - if: $CI_COMMIT_REF_NAME

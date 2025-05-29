@@ -1,10 +1,10 @@
 import logging
+import subprocess
 from copy import copy
 from dataclasses import dataclass
 from pathlib import Path
 
 import pandas as pd
-from kaggle.api.kaggle_api_extended import KaggleApi
 
 from schemas import DatasetFeature, InferenceRequest
 
@@ -24,11 +24,14 @@ class Data:
 dataset_name = "titanic"
 
 # List of required files from the Titanic dataset
-required_files = ["train.csv", "test.csv", "gender_submission.csv"]
+DATASET_FILES = ["train.csv", "test.csv", "gender_submission.csv"]
 
 
 # Function to download the Titanic dataset components individually
+# TODO: requires a kaggle API key
 def download_titanic_dataset(path: Path):
+    from kaggle import KaggleApi
+
     try:
         # Initialize the Kaggle API
         api = KaggleApi()
@@ -37,7 +40,7 @@ def download_titanic_dataset(path: Path):
         logger.info(f"Downloading {dataset_name} dataset components...")
 
         # Download each file individually
-        for file in required_files:
+        for file in DATASET_FILES:
             file_path = path / file
             api.competition_download_file(dataset_name, file_name=file, path=path)
             logger.info(f"Downloaded {file} to {file_path}")
@@ -47,19 +50,39 @@ def download_titanic_dataset(path: Path):
         raise
 
 
-def preprocess_train(df: pd.DataFrame):
+def checkout_dataset_from_repo(path: Path):
+    """Checkout dataset files from the 'data' branch.
+    TODO: Supposed to be a temporary solution, until CI has an API key for kaggle.
+    """
+
+    path.mkdir(parents=True, exist_ok=True)
+
+    for file in DATASET_FILES:
+        file_path = path / file
+        if file_path.exists():
+            logger.info(f"Skipping {file_path}: file exists")
+            continue
+        dataset_branch = "origin/data"
+        dataset_location = "data"
+        git_file_spec = f"{dataset_branch}:{dataset_location}/{file}"
+        res = subprocess.run(
+            ["git", "show", git_file_spec],
+            check=True,
+            capture_output=True,
+        )
+        _ = file_path.write_bytes(res.stdout)
+
+        logger.info(f"Copied {git_file_spec} to {file_path}")
+
+
+# TODO: align preprocessing with the reference notebook
+def preprocess(df: pd.DataFrame):
     # Fill missing values
     df = df.assign(
         Age=df["Age"].fillna(df["Age"].median()),
         Fare=df["Fare"].fillna(df["Fare"].median()),
         Embarked=df["Embarked"].fillna(df["Embarked"].mode()[0]),
     )
-    return preprocess(df)
-
-
-def preprocess(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
-    # TODO: naming of the columns follows DatasetFeature/ord
-    # TODO: do not drop throw away any features => add them to DatasetFeature
 
     # Drop irrelevant columns
     df = df.drop(["Ticket", "Cabin"], axis=1)
@@ -115,8 +138,7 @@ def preprocess(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
     print(df.columns)
 
     # Return the processed dataframe and the target column
-    # TODO: return all the columns that are in DatasetFeature
-    return df[ordered_columns.values()], df["Survived"]
+    return df[sorted(ordered_columns.values())], df["Survived"]
 
 
 def prepare_data(data: Data, features: set[DatasetFeature]) -> Data:
@@ -204,16 +226,18 @@ def load_data(path: Path):
     data = load_preprocessed_data(path)
     # Load the dataset
     if data is None:
-        download_titanic_dataset(path)
+        # TODO: decide something about an API key
+        # download_titanic_dataset(path)
+        checkout_dataset_from_repo(path)
 
         # Preprocess the dataset
-        train_output, train_input = preprocess_train(pd.read_csv(path / "train.csv"))
+        train_output, train_input = preprocess(pd.read_csv(path / "train.csv"))
         _test = pd.read_csv(path / "test.csv")
         _submission = pd.read_csv(path / "gender_submission.csv")
         # Merge test and submission data to get the same columns as train
         test = pd.merge(_test, _submission, on="PassengerId", how="inner")
 
-        test_output, test_input = preprocess_train(test)
+        test_output, test_input = preprocess(test)
 
         #
         data = Data(train_output, train_input, test_output, test_input)
