@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 
 from models_router import models_router
+from training.training_endpoint import training_endpoint
 from utils.data import load_data
 from utils.models import LoadedModels
 
@@ -73,6 +74,7 @@ def create_app() -> FastAPI:
 
     # Mount inference and training endpoints
     app.include_router(models_router, prefix="/models", tags=["Models"])
+    app.include_router(training_endpoint, prefix="/training", tags=["Models"])
 
     return app
 

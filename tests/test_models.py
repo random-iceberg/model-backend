@@ -84,7 +84,7 @@ def test_run_inference(client: TestClient):
         embarked="cherbourg",
         title="mr",
     )
-    model_id = "knn"
+    model_id = "svm"
     response = client.post(
         f"/models/{model_id}/predict", json=infer_request.model_dump()
     )
@@ -94,6 +94,7 @@ def test_run_inference(client: TestClient):
     # Ensure 'survived' key exists and is a boolean
     assert hasattr(result, "survived")
     assert isinstance(result.survived, bool)
+    assert result.probability > 0.5
 
 
 def test_delete_model(client: TestClient):
