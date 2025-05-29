@@ -88,3 +88,4 @@ class InferenceResponse(BaseModel):
     """
 
     survived: bool
+    probability: float

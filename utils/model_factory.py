@@ -33,6 +33,7 @@ def make_estimator(params: ModelParams):
         case AlgoSvm():
             return SVC(
                 random_state=params.random_state,
+                probability=True,
             )
 
         case AlgoLr():

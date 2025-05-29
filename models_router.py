@@ -48,9 +48,12 @@ async def run_inference(
 
     prepared_data = prepare_passenger_data(input, model.desc.params.features)
     print(prepared_data)
-    prediction = model.impl.predict(prepared_data)[0]
+    prediction_probs = model.impl.predict_proba(prepared_data)[0]
+    prediction = prediction_probs.argmax().item()
 
-    return InferenceResponse(survived=prediction)
+    return InferenceResponse(
+        survived=prediction, probability=prediction_probs[prediction]
+    )
 
 
 @models_router.delete("/{model_id}")
