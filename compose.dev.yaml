@@ -4,17 +4,5 @@ services:
     build:
       context: .
       target: dev
-    develop:
-      watch:
-        - path: ./requirements.txt
-          action: rebuild
-        - path: ./main.py
-          action: sync+restart
-          target: /app/main.py
-        - path: .
-          ignore: # TODO: refine
-            - requirements.txt
-            - main.py
-          action: sync
-          target: /app
-
+    volumes:
+      - .:/to_sync:ro
