@@ -37,7 +37,9 @@ async def train_model(params: ModelParams, req: Request) -> Model:
 
 
 @models_router.post("/{model_id}/predict")
-async def run_inference(model_id: str, input: InferenceRequest, req: Request) -> InferenceResponse:
+async def run_inference(
+    model_id: str, input: InferenceRequest, req: Request
+) -> InferenceResponse:
     """
     Endpoint to run machine learning inference.
     """

@@ -23,10 +23,10 @@ async def lifespan(app: FastAPI):
     data_prefix = Path(environ.get("DATA_PREFIX", "tmp/data"))
     # Dataset and models dirs
     dataset_path = Path(environ.get("DATASET_PATH", str(data_prefix / "dataset")))
-    models_path  = Path(environ.get("MODELS_PATH",  str(data_prefix / "models")))
+    models_path = Path(environ.get("MODELS_PATH", str(data_prefix / "models")))
 
     # Load the Titanic data and existing models
-    _   = load_data(dataset_path)
+    _ = load_data(dataset_path)
     models = LoadedModels(models_path, dataset_path)
     await models.load_existing()
 

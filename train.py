@@ -4,7 +4,7 @@ from pathlib import Path
 from sklearn.metrics import accuracy_score
 
 from schemas import ModelInfo, ModelParams
-from utils.data import Data, load_data, prepare_data
+from utils.data import load_data, prepare_data
 from utils.model_factory import make_estimator
 
 

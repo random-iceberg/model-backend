@@ -113,15 +113,18 @@ class LoadedModels:
 
         # Run train model in a separate process,
         # the process will save the model at model_path
-        # TODO: some troubles with asyncio.create_subprocess_exec 
+        # TODO: some troubles with asyncio.create_subprocess_exec
         res = await to_thread(
             subprocess.run,
             [
-                sys.executable, "-m", train.__name__,
-                str(self.dataset_path), str(model_path),
+                sys.executable,
+                "-m",
+                train.__name__,
+                str(self.dataset_path),
+                str(model_path),
                 params.model_dump_json(),
             ],
-            check=True
+            check=True,
         )
 
         if res.returncode != 0:

@@ -45,5 +45,3 @@ checks:
     - uv run pytest
     - uv run ruff check
     - uv run ruff format --check
-  rules:
-    - if: $CI_COMMIT_REF_NAME
