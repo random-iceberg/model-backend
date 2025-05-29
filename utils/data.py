@@ -1,5 +1,5 @@
 import logging
-import subprocess
+import shutil
 from copy import copy
 from dataclasses import dataclass
 from pathlib import Path
@@ -50,9 +50,9 @@ def download_titanic_dataset(path: Path):
         raise
 
 
-def checkout_dataset_from_repo(path: Path):
-    """Checkout dataset files from the 'data' branch.
-    TODO: Supposed to be a temporary solution, until CI has an API key for kaggle.
+def copy_local_dataset(path: Path):
+    """Copy the local dataset files.
+    TODO: Supposed to be a temporary solution, until CI and compose have an API key for kaggle.
     """
 
     path.mkdir(parents=True, exist_ok=True)
@@ -62,17 +62,9 @@ def checkout_dataset_from_repo(path: Path):
         if file_path.exists():
             logger.info(f"Skipping {file_path}: file exists")
             continue
-        dataset_branch = "origin/data"
-        dataset_location = "data"
-        git_file_spec = f"{dataset_branch}:{dataset_location}/{file}"
-        res = subprocess.run(
-            ["git", "show", git_file_spec],
-            check=True,
-            capture_output=True,
-        )
-        _ = file_path.write_bytes(res.stdout)
-
-        logger.info(f"Copied {git_file_spec} to {file_path}")
+        local_path = Path("data") / file
+        _ = shutil.copy(local_path, file_path)
+        logger.info(f"Copied {local_path} to {file_path}")
 
 
 # TODO: align preprocessing with the reference notebook
@@ -228,7 +220,7 @@ def load_data(path: Path):
     if data is None:
         # TODO: decide something about an API key
         # download_titanic_dataset(path)
-        checkout_dataset_from_repo(path)
+        copy_local_dataset(path)
 
         # Preprocess the dataset
         train_output, train_input = preprocess(pd.read_csv(path / "train.csv"))
