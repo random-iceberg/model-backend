@@ -1,7 +1,15 @@
 import logging
+from contextlib import asynccontextmanager
+from os import environ
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
+
+from models_router import models_router
+from training.training_endpoint import training_endpoint
+from utils.data import load_data
+from utils.models import LoadedModels
 
 # Configure root logger
 logging.basicConfig(
@@ -9,6 +17,23 @@ logging.basicConfig(
     format="[%(asctime)s] %(levelname)s in %(module)s: %(message)s",
 )
 logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    data_prefix = Path(environ.get("DATA_PREFIX", "tmp/data"))
+    # Dataset and models dirs
+    dataset_path = Path(environ.get("DATASET_PATH", str(data_prefix / "dataset")))
+    models_path = Path(environ.get("MODELS_PATH", str(data_prefix / "models")))
+
+    # Load the Titanic data and existing models
+    _ = load_data(dataset_path)
+    models = LoadedModels(models_path, dataset_path)
+    await models.load_existing()
+
+    yield {"models": models}
+
+    # Clean up
 
 
 def create_app() -> FastAPI:
@@ -30,6 +55,7 @@ def create_app() -> FastAPI:
             "docExpansion": "none",
         },
         version="1.0.0",
+        lifespan=lifespan,
     )
 
     # Health check endpoint
@@ -45,12 +71,10 @@ def create_app() -> FastAPI:
         return RedirectResponse(url="/docs")
 
     # Include routers from submodules
-    from inference.inference_endpoint import inference_endpoint
-    from training.training_endpoint import training_endpoint
 
     # Mount inference and training endpoints
-    app.include_router(inference_endpoint, prefix="/inference", tags=["Inference"])
-    app.include_router(training_endpoint, prefix="/training", tags=["Training"])
+    app.include_router(models_router, prefix="/models", tags=["Models"])
+    app.include_router(training_endpoint, prefix="/training", tags=["Models"])
 
     return app
 

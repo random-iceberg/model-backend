@@ -1,7 +1,11 @@
+# !!! TODO: should not be used !!!
 import logging
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Request
 from pydantic import BaseModel
+
+from schemas import DEFAULT_FEATURE_SET, AlgoSvm, ModelParams
+from utils.models import LoadedModels
 
 # Configure module-level logger
 logger = logging.getLogger(__name__)
@@ -25,6 +29,7 @@ class TrainingResponse(BaseModel):
     """
 
     status: str
+    accuracy: float
 
 
 training_endpoint = APIRouter()
@@ -33,24 +38,18 @@ training_endpoint = APIRouter()
 @training_endpoint.post(
     "/", response_model=TrainingResponse, summary="Initiate ML Model Training"
 )
-async def run_training(request: TrainingRequest) -> TrainingResponse:
+async def run_training(request: TrainingRequest, req: Request) -> TrainingResponse:
     """
     Endpoint to initiate model training.
 
-    TODO:
-      - Integrate the actual training pipeline (e.g., call a training service or function)
-      - Provide real-time progress updates via polling or WebSocket integration
-      - Ensure that training is performed asynchronously if it is long-running
+    !!! TODO: remove. web-backend should use /models/train !!!
     """
-    try:
-        # Log the received training parameters for transparency.
-        logger.info("Received training request with parameters: %s", request.parameters)
+    models: LoadedModels = req.state.models
+    model_id = request.parameters["model_id"]
+    params = ModelParams(  # Ignore incoming parameters. They are of a wrong format.
+        algo=AlgoSvm(), random_state=None, features=DEFAULT_FEATURE_SET
+    )
 
-        # TODO: Replace the placeholder logic below with an integration to the training pipeline.
-        training_status = "Training initiated"  # Placeholder status message
+    model = await models.train_model(model_id, params)
 
-        response = TrainingResponse(status=training_status)
-        return response
-    except Exception as exc:
-        logger.error("Error during training process: %s", exc, exc_info=True)
-        raise HTTPException(status_code=500, detail="Training process failed")
+    return TrainingResponse(accuracy=model.info.accuracy, status="Finished")

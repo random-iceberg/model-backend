@@ -30,3 +30,7 @@ reportExplicitAny = false
 reportUnknownArgumentType = false
 reportUnknownVariableType = false
 reportUnknownLambdaType = false
+reportMissingTypeArgument = false
+reportMissingTypeStubs = false
+reportUnknownMemberType = false
+reportPrivateLocalImportUsage = false
