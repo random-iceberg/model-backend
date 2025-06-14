@@ -41,7 +41,38 @@ def client(data_path: Path, models_path: Path):
         yield client
 
 
-def test_list_models(client: TestClient):
+@pytest.fixture(scope="session")
+def default_data_path(tmp_path_factory: pytest.TempPathFactory):
+    return tmp_path_factory.mktemp("data")
+
+
+@pytest.fixture
+def default_client(default_data_path: Path):
+    environ["DATA_PREFIX"] = str(default_data_path)
+    with TestClient(app) as client:
+        yield client
+
+
+def test_default_model_exists(default_client: TestClient):
+    client = default_client
+    response = client.get("/models")
+    model_json = next(filter(lambda x: x["id"] == "default", response.json()))
+    model = Model.model_validate(model_json)
+    assert not model.removable
+    assert model.params.features == {
+        DatasetFeature.pclass,
+        DatasetFeature.age,
+        DatasetFeature.sex,
+        DatasetFeature.fare,
+        DatasetFeature.embarked,
+        DatasetFeature.title_,
+        DatasetFeature.is_alone,
+        DatasetFeature.age_class,
+    }
+
+
+def test_list_models(default_client: TestClient):
+    client = default_client
     response = client.get("/models")
     assert response.status_code == 200
     data = response.json()
@@ -56,15 +87,20 @@ def test_list_models(client: TestClient):
         assert isinstance(model.info.accuracy, float)
 
 
-def test_train_model(client: TestClient):
+def train_some_model(client: TestClient):
     # Prepare payload using the ModelParams schema
     params = ModelParams(
         algo=AlgoDt(),
         random_state=42,
-        features={DatasetFeature.pclass, DatasetFeature.sex},
+        features={"pclass", "sex", "abc"},
     )
     payload = json.loads(params.model_dump_json())
-    response = client.post("/models/train", json=payload)
+    return client.post("/models/train", json=payload)
+
+
+def test_train_model(client: TestClient):
+    # Prepare payload using the ModelParams schema
+    response = train_some_model(client)
     assert response.status_code == 200
     data = response.json()
     model = Model.model_validate(data)
@@ -73,7 +109,9 @@ def test_train_model(client: TestClient):
     assert model.params.features == {DatasetFeature.pclass, DatasetFeature.sex}
 
 
-def test_run_inference(client: TestClient):
+def test_run_inference(default_client: TestClient):
+    client = default_client
+
     # Prepare inference payload using InferenceRequest schema
     infer_request = InferenceRequest(
         pclass=1,
@@ -83,11 +121,9 @@ def test_run_inference(client: TestClient):
         travelled_alone=False,
         embarked="cherbourg",
         title="mr",
+        cabin_known=True,
     )
-    model_id = "svm"
-    response = client.post(
-        f"/models/{model_id}/predict", json=infer_request.model_dump()
-    )
+    response = client.post("/models/default/predict", json=infer_request.model_dump())
     assert response.status_code == 200
     data = response.json()
     result = InferenceResponse.model_validate(data)
@@ -98,9 +134,22 @@ def test_run_inference(client: TestClient):
 
 
 def test_delete_model(client: TestClient):
-    model_id = "knn"
+    model = train_some_model(client).json()
+    model_id = model["id"]
     response = client.delete(f"/models/{model_id}")
     assert response.status_code == 200
     data = response.json()
     # Should return True indicating successful deletion
     assert data is True
+
+
+def test_delete_protected_model(default_client: TestClient):
+    client = default_client
+    response = client.delete("/models/default")
+    assert response.status_code == 403
+
+
+def test_delete_nonexistent_model(default_client: TestClient):
+    client = default_client
+    response = client.delete("/models/nonexistent")
+    assert response.status_code == 404

@@ -4,6 +4,7 @@ import shutil
 import subprocess
 import sys
 from asyncio import to_thread
+from copy import copy
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -15,6 +16,7 @@ from schemas import (
     AlgoLr,
     AlgoRf,
     AlgoSvm,
+    DatasetFeature,
     Model,
     ModelInfo,
     ModelParams,
@@ -48,29 +50,36 @@ class LoadedModels:
 
         # Default models
         ALGORITHMS = {
-            "knn": ModelParams(
+            "knn": ModelParams[DatasetFeature](
                 algo=AlgoKnn(n_neighbours=3),
                 random_state=1,
                 features=DEFAULT_FEATURE_SET,
             ),
-            "rf": ModelParams(
+            "rf": ModelParams[DatasetFeature](
                 algo=AlgoRf(n_estimators=100),
                 random_state=1,
                 features=DEFAULT_FEATURE_SET,
             ),
-            "svm": ModelParams(
+            "svm": ModelParams[DatasetFeature](
                 algo=AlgoSvm(), random_state=1, features=DEFAULT_FEATURE_SET
             ),
-            "lr": ModelParams(
+            "lr": ModelParams[DatasetFeature](
                 algo=AlgoLr(), random_state=1, features=DEFAULT_FEATURE_SET
             ),
         }
 
-        # TODO: use the set of features from the requirements
         for key, params in ALGORITHMS.items():
-            if key in self.models:
-                continue
-            _ = await self.train_model(key, params)
+            if key not in self.models:
+                _ = await self.train_model(key, params)
+            self.models[key].desc.removable = False
+
+        # Set default model
+        default_model = self.models["knn"]
+        default_model_desc = copy(default_model.desc)
+        default_model_desc.id = "default"
+        self.models["default"] = LoadedModel(
+            desc=default_model_desc, impl=default_model.impl
+        )
 
     async def load_model(self, model_id: str):
         model_path = self.path / model_id
@@ -96,19 +105,20 @@ class LoadedModels:
         model_path = self.path / model_id
         if not model_path.exists():
             logger.warning("Model %s does not exist", model_id)
-            return False
+            return
 
         try:
             await to_thread(shutil.rmtree, model_path)
             del self.models[model_id]
             # self.models.pop(model_id, None)
             logger.info("Deleted model %s", model_id)
-            return True
         except Exception as e:
             logger.error("Failed to delete model %s: %s", model_id, e)
-            return False
+            raise e
 
-    async def train_model(self, model_id: str, params: ModelParams) -> Model:
+    async def train_model(
+        self, model_id: str, params: ModelParams[DatasetFeature]
+    ) -> Model:
         model_path = self.path / model_id
 
         # Run train model in a separate process,

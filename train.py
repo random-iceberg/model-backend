@@ -3,12 +3,14 @@ from pathlib import Path
 
 from sklearn.metrics import accuracy_score
 
-from schemas import ModelInfo, ModelParams
+from schemas import DatasetFeature, ModelInfo, ModelParams
 from utils.data import load_data, prepare_data
 from utils.model_factory import make_estimator
 
 
-def train_and_write(data_path: Path, model_path: Path, params: ModelParams):
+def train_and_write(
+    data_path: Path, model_path: Path, params: ModelParams[DatasetFeature]
+):
     # 1. Prepare data
     data = load_data(data_path)
     data = prepare_data(data, params.features)
@@ -43,5 +45,5 @@ if __name__ == "__main__":
     params_json = argv[3]  # A single JSON following ModelParams
 
     path.mkdir(parents=True, exist_ok=True)
-    params = ModelParams.model_validate_json(params_json)
+    params = ModelParams[DatasetFeature].model_validate_json(params_json)
     train_and_write(data_path, path, params)
