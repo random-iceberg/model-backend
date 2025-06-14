@@ -53,24 +53,6 @@ def default_client(default_data_path: Path):
         yield client
 
 
-def test_default_model_exists(default_client: TestClient):
-    client = default_client
-    response = client.get("/models")
-    model_json = next(filter(lambda x: x["id"] == "default", response.json()))
-    model = Model.model_validate(model_json)
-    assert not model.removable
-    assert model.params.features == {
-        DatasetFeature.pclass,
-        DatasetFeature.age,
-        DatasetFeature.sex,
-        DatasetFeature.fare,
-        DatasetFeature.embarked,
-        DatasetFeature.title_,
-        DatasetFeature.is_alone,
-        DatasetFeature.age_class,
-    }
-
-
 def test_list_models(default_client: TestClient):
     client = default_client
     response = client.get("/models")
@@ -123,7 +105,10 @@ def test_run_inference(default_client: TestClient):
         title="mr",
         cabin_known=True,
     )
-    response = client.post("/models/default/predict", json=infer_request.model_dump())
+    model_id = "svm"
+    response = client.post(
+        f"/models/{model_id}/predict", json=infer_request.model_dump()
+    )
     assert response.status_code == 200
     data = response.json()
     result = InferenceResponse.model_validate(data)
@@ -145,7 +130,7 @@ def test_delete_model(client: TestClient):
 
 def test_delete_protected_model(default_client: TestClient):
     client = default_client
-    response = client.delete("/models/default")
+    response = client.delete("/models/knn")
     assert response.status_code == 403
 
 

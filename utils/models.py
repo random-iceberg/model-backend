@@ -4,7 +4,6 @@ import shutil
 import subprocess
 import sys
 from asyncio import to_thread
-from copy import copy
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -72,14 +71,6 @@ class LoadedModels:
             if key not in self.models:
                 _ = await self.train_model(key, params)
             self.models[key].desc.removable = False
-
-        # Set default model
-        default_model = self.models["knn"]
-        default_model_desc = copy(default_model.desc)
-        default_model_desc.id = "default"
-        self.models["default"] = LoadedModel(
-            desc=default_model_desc, impl=default_model.impl
-        )
 
     async def load_model(self, model_id: str):
         model_path = self.path / model_id
