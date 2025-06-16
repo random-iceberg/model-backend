@@ -5,10 +5,18 @@ from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 
 # Import your Pydantic schemas
-from schemas import AlgoDt, AlgoKnn, AlgoLr, AlgoRf, AlgoSvm, ModelParams
+from schemas import (
+    AlgoDt,
+    AlgoKnn,
+    AlgoLr,
+    AlgoRf,
+    AlgoSvm,
+    DatasetFeature,
+    ModelParams,
+)
 
 
-def make_estimator(params: ModelParams):
+def make_estimator(params: ModelParams[DatasetFeature]):
     """
     Factory to instantiate an sklearn estimator based on a Pydantic AlgoXxx model.
     """
