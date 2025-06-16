@@ -62,23 +62,11 @@ All features from the Titanic dataset:
 
 ### Using Docker Compose (Recommended)
 
-```bash
-# Development mode with hot reload
-cd compose
-docker compose -f compose.dev.yaml up model
-
-# View logs
-docker compose logs -f model
-
-# Run tests
-docker compose exec model uv run pytest
-```
-
 ### Testing the API with Swagger
 
 1. Go to http://localhost:8001/docs
 2. Try `/models` to see pre-loaded models
-3. Test prediction with `/models/rf/predict`:
+3. Test prediction with `/models/{model_id}/predict`:
    ```json
    {
      "pclass": 1,
@@ -91,23 +79,6 @@ docker compose exec model uv run pytest
    }
    ```
 4. Train a custom model with `/models/train`
-
-### Optional: Local Development
-
-If you need to run locally without Docker:
-
-```bash
-cd model
-
-# Install dependencies
-uv sync --extra dev
-
-# Set data directory
-export DATA_PREFIX=./tmp/data
-
-# Run service
-uv run uvicorn main:app --reload --port 8001
-```
 
 ## 🧪 Testing
 
