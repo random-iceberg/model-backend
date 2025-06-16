@@ -5,8 +5,8 @@ Machine learning service for training and inference using scikit-learn models.
 ## 🚀 Quick Start (Zero Configuration)
 
 ```bash
-# From the root docker-compose directory
-docker compose up model
+# From the project root directory
+docker compose -f 'compose/compose.dev.yaml' up -d --build
 
 # Access Swagger UI
 open http://localhost:8001/docs  # Development mode
