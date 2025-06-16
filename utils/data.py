@@ -152,6 +152,10 @@ def prepare_passenger_data(req: InferenceRequest, features: set[DatasetFeature])
     """Transform the request into input vector containing given features.
     The transformation follows the one in `preprocess`.
     The features in the output vector are ordered according to DatasetFeature.ord
+
+    Returns: DataFrame with prepared features
+    Raises:
+        - ValueError if one of the `features` is set to None in `req`
     """
     feature_sorted = sorted(features)
 
@@ -159,25 +163,52 @@ def prepare_passenger_data(req: InferenceRequest, features: set[DatasetFeature])
     for f in feature_sorted:
         match f:
             case DatasetFeature.pclass:
+                if req.pclass is None:
+                    raise ValueError
                 value = req.pclass
             case DatasetFeature.sex:
+                if req.sex is None:
+                    raise ValueError
                 value = {"male": 0, "female": 1}[req.sex]
             case DatasetFeature.age:
+                if req.age is None:
+                    raise ValueError
                 value = req.age
             case DatasetFeature.fare:
+                if req.fare is None:
+                    raise ValueError
                 value = req.fare
             case DatasetFeature.is_alone:
-                value = 1 if req.travelled_alone else 0
+                if req.travelled_alone is not None:
+                    is_alone = req.travelled_alone
+                elif req.sibsp is not None:
+                    is_alone = req.sibsp == 0
+                elif req.parch is not None:
+                    is_alone = req.parch == 0
+                else:
+                    raise ValueError
+                value = int(is_alone)
             case DatasetFeature.embarked:
+                if req.embarked is None:
+                    raise ValueError
                 value = {"cherbourg": 0, "queenstown": 1, "southhampton": 2}[
                     req.embarked
                 ]
             case DatasetFeature.title_:
+                if req.title is None:
+                    raise ValueError
                 value = {"mr": 1, "miss": 2, "mrs": 3, "master": 4, "rare": 5}[
                     req.title
                 ]
             case DatasetFeature.age_class:
-                value = req.age * req.pclass
+                if req.age_times_class is not None:
+                    value = req.age_times_class
+                elif req.age is None:
+                    raise ValueError
+                elif req.pclass is None:
+                    raise ValueError
+                else:
+                    value = req.age * req.pclass
         vec.append(value)
 
     return pd.DataFrame(
@@ -236,3 +267,11 @@ def load_data(path: Path):
         save_preprocessed_data(path, data)
 
     return data
+
+
+def filter_features(features: set[str]):
+    filtered_features: set[DatasetFeature] = set()
+    for feature in features:
+        if feature in DatasetFeature:
+            filtered_features.add(DatasetFeature(feature))
+    return filtered_features

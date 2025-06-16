@@ -46,12 +46,12 @@ class AlgoLr(BaseModel):
     name: Literal["lr"] = "lr"
 
 
-class ModelParams(BaseModel):
+class ModelParams[T](BaseModel):
     """All the model training parameters"""
 
     algo: AlgoRf | AlgoDt | AlgoKnn | AlgoSvm | AlgoLr = Field(discriminator="name")
     random_state: int | None = Field(None)
-    features: set[DatasetFeature] = Field(DEFAULT_FEATURE_SET)
+    features: set[T]
 
 
 class ModelInfo(BaseModel):
@@ -64,22 +64,34 @@ class Model(BaseModel):
     """
 
     id: str
-    params: ModelParams
+    removable: bool = True
+    params: ModelParams[DatasetFeature]
     info: ModelInfo
 
 
 class InferenceRequest(BaseModel):
     """
     Data model for inference request.
+    Only fields used by the respective model have to be set, others can be left unset.
     """
 
-    pclass: Literal[1, 2, 3]
-    sex: Literal["male", "female"]
-    age: float = Field(..., ge=0, le=100)
-    fare: float = Field(..., ge=0, le=500)
-    travelled_alone: bool
-    embarked: Literal["cherbourg", "queenstown", "southhampton"]
-    title: Literal["master", "miss", "mr", "mrs", "rare"]
+    # Some fields are not used at all, that is intended
+
+    # ['Pclass' 'Sex' 'Age' 'SibSp' 'Parch' 'Ticket' 'Fare' 'Cabin' 'Embarked']
+    # Original features
+    pclass: Literal[1, 2, 3] | None = None
+    sex: Literal["male", "female"] | None = None
+    age: float | None = Field(default=None, ge=0, le=120)
+    sibsp: float | None = Field(default=None, ge=0)
+    parch: float | None = Field(default=None, ge=0)
+    fare: float | None = Field(default=None, ge=0, le=500)
+    embarked: Literal["cherbourg", "queenstown", "southhampton"] | None = None
+    # Semi-original features
+    cabin_known: bool | None = None
+    title: Literal["master", "miss", "mr", "mrs", "rare"] | None = None
+    # Derived features
+    travelled_alone: bool | None = None
+    age_times_class: float | None = None
 
 
 class InferenceResponse(BaseModel):

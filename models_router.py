@@ -1,15 +1,18 @@
 import logging
+from textwrap import dedent
 from uuid import uuid4
 
 from fastapi import APIRouter, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
 
 from schemas import (
+    DatasetFeature,
     InferenceRequest,
     InferenceResponse,
     Model,
     ModelParams,
 )
-from utils.data import prepare_passenger_data
+from utils.data import filter_features, prepare_passenger_data
 from utils.models import LoadedModels
 
 # Configure module-level logger
@@ -27,11 +30,27 @@ async def list_models(req: Request) -> list[Model]:
 
 
 @models_router.post("/train")
-async def train_model(params: ModelParams, req: Request) -> Model:
+async def train_model(params: ModelParams[str], req: Request) -> Model:
     """Train a new model"""
+    filtered_features = filter_features(params.features)
+    if not filtered_features:
+        raise RequestValidationError(
+            dedent(
+                f"""\
+                    None of the requests features are available for training.
+                    Use some of those: {[x.value for x in DatasetFeature]}
+                """
+            )
+        )
+    filtered_params = ModelParams[DatasetFeature](
+        algo=params.algo,
+        random_state=params.random_state,
+        features=filtered_features,
+    )
+
     models: LoadedModels = req.state.models
     model_id = "trained-" + uuid4().hex
-    model = await models.train_model(model_id, params)
+    model = await models.train_model(model_id, filtered_params)
 
     return model
 
@@ -59,6 +78,11 @@ async def run_inference(
 @models_router.delete("/{model_id}")
 async def delete_model(model_id: str, req: Request) -> bool:
     models: LoadedModels = req.state.models
-    if not await models.delete_model(model_id):
+    model = models.models.get(model_id)
+    if model is None:
         raise HTTPException(status_code=404, detail="Model not found")
+    if not model.desc.removable:
+        raise HTTPException(status_code=403, detail="Model marked as non-removable")
+
+    await models.delete_model(model_id)
     return True
