@@ -112,12 +112,20 @@ uv run uvicorn main:app --reload --port 8001
 ## 🧪 Testing
 
 ```bash
-# Run tests in container
-docker compose exec model uv run pytest
+cd model
 
-# Linting and formatting
-docker compose exec model uv run ruff check
-docker compose exec model uv run ruff format
+# Install dependencies (if not already done)
+uv sync --no-cache --extra dev
+
+# Run tests
+uv run pytest
+
+# Linting and formatting check
+uv run ruff check
+uv run ruff format --check
+
+# Auto-fix formatting
+uv run ruff format
 ```
 
 ## 📁 Project Structure
