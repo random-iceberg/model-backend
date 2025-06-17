@@ -17,11 +17,9 @@ No setup needed! The service starts with pre-trained models ready for inference.
 ## 📋 Features
 
 - **5 ML Algorithms**: Random Forest, SVM, Decision Tree, KNN, Logistic Regression
-- **Real-time Inference**: Fast predictions with model caching
-- **Model Training**: Train custom models with configurable features
+- **Model Training**: Train models with configurable feature selection
 - **Model Persistence**: Automatic saving and loading of trained models
 - **RESTful API**: Full Swagger/OpenAPI documentation
-- **Hot Reload**: Automatic restart on code changes (dev mode)
 
 ## 🏗️ API Documentation
 
@@ -38,17 +36,17 @@ Access the Swagger UI at: **http://localhost:8001/docs** (development mode)
 
 ## 🤖 Available Algorithms
 
-| Algorithm | ID | Key Parameters | Best For |
-|-----------|-----|----------------|----------|
-| Random Forest | `rf` | `n_estimators=100` | General purpose, robust |
-| Support Vector Machine | `svm` | kernel, C, gamma | Non-linear patterns |
-| Decision Tree | `dt` | max_depth, min_samples | Interpretability |
-| K-Nearest Neighbors | `knn` | `n_neighbors=5` | Local patterns |
-| Logistic Regression | `lr` | solver, regularization | Linear relationships |
+| Algorithm | ID | Configurable Parameters |
+|-----------|-----|------------------------|
+| Random Forest | `rf` | `n_estimators` |
+| Support Vector Machine | `svm` | - |
+| Decision Tree | `dt` | - |
+| K-Nearest Neighbors | `knn` | `n_neighbors` |
+| Logistic Regression | `lr` | - |
 
 ## 📊 Available Features
 
-All features from the Titanic dataset:
+Features from the Titanic dataset (select which ones to use during training):
 - `pclass` - Passenger class (1, 2, 3)
 - `sex` - Gender (male/female)
 - `age` - Age in years
@@ -59,8 +57,6 @@ All features from the Titanic dataset:
 - `age_class` - Age × Class interaction
 
 ## 🛠️ Development Workflow
-
-### Using Docker Compose (Recommended)
 
 ### Testing the API with Swagger
 
@@ -86,7 +82,7 @@ All features from the Titanic dataset:
 cd model
 
 # Install dependencies (if not already done)
-uv sync --no-cache --extra dev
+uv sync --extra dev
 
 # Run tests
 uv run pytest
@@ -191,7 +187,7 @@ model/
 
 ### Pre-loaded Models
 On startup, the service loads:
-- `rf` - Random Forest (default)
+- `rf` - Random Forest
 - `svm` - Support Vector Machine
 - `knn` - K-Nearest Neighbors
 - `lr` - Logistic Regression
@@ -203,12 +199,6 @@ The service is production-ready when deployed via:
 docker compose -f compose/compose.prod-local.yaml up
 ```
 
-Features in production:
-- Optimized model loading
-- Cached predictions
-- Health monitoring
-- Structured logging
-
 ## 🔍 Troubleshooting
 
 ### Model Not Found
@@ -216,14 +206,17 @@ Features in production:
 - Verify model files in container: `docker compose exec model ls /data/models`
 
 ### Slow Predictions
-- First prediction loads model into memory
-- Subsequent predictions are cached
-- Use `random_state` for reproducible results
+- Models are loaded at container startup
+- Consider model complexity and input data size
 
 ### Training Failures
 - Check feature names match schema
 - Verify algorithm parameters are valid
 - Review logs: `docker compose logs model`
+
+### Note on random_state
+- The `random_state` parameter only affects model training for reproducibility
+- It does not affect predictions
 
 ## 📚 Additional Resources
 
