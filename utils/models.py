@@ -11,6 +11,7 @@ from typing import Any
 import train
 from schemas import (
     DEFAULT_FEATURE_SET,
+    AlgoDt,
     AlgoKnn,
     AlgoLr,
     AlgoRf,
@@ -64,6 +65,9 @@ class LoadedModels:
             ),
             "lr": ModelParams[DatasetFeature](
                 algo=AlgoLr(), random_state=1, features=DEFAULT_FEATURE_SET
+            ),
+            "dt": ModelParams[DatasetFeature](
+                algo=AlgoDt(), random_state=1, features=DEFAULT_FEATURE_SET
             ),
         }
 
